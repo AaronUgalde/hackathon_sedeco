@@ -35,6 +35,9 @@ import PoisPanel          from './components/panels/PoisPanel';
 import DenuePanel         from './components/panels/DenuePanel';
 import UploadPanel        from './components/panels/UploadPanel';
 
+// Chatbot / Asesor de Negocios IA
+import ChatView from './components/chat/ChatView';
+
 // Constantes y estilos
 import { LAYER_FIELD_MAP, LAYER_COLORS } from './constants';
 import Icons   from './utils/icons';
@@ -134,6 +137,9 @@ export default function App() {
 
   // ── Capas subidas por el usuario ──────────────────────────────────────────
   const [userLayers, setUserLayers] = useState([]);
+
+  // ── Panel Chatbot ─────────────────────────────────────────────────────────
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // ── Filtrado espacial para capas subidas ──────────────────────────────────
   const filteredUserLayers = React.useMemo(() => {
@@ -416,6 +422,12 @@ export default function App() {
 
   // ── Toggle de paneles ─────────────────────────────────────────────────────
   const togglePanel = (id) => {
+    // ── Chatbot: abre el drawer lateral ─────────────────────────────────────
+    if (id === 'chat') {
+      setIsChatOpen(prev => !prev);
+      return;
+    }
+
     if (id === 'descargar_mapa') {
       const allDrawings = drawInstance ? drawInstance.getAll() : (drawnPolygon ? JSON.parse(drawnPolygon) : null);
 
@@ -453,7 +465,7 @@ export default function App() {
   return (
     <div style={styles.appContainer}>
       <Header />
-      <Toolbar activePanels={activePanels} togglePanel={togglePanel} />
+      <Toolbar activePanels={activePanels} togglePanel={togglePanel} isChatOpen={isChatOpen} />
 
       <div style={styles.mapWrapper}>
         <MapView
@@ -686,6 +698,63 @@ export default function App() {
           }}
         />
       </FloatingPanel>
+
+      {/* ── Chatbot: drawer lateral ────────────────────────────────────────── */}
+      <ChatView
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
+
+      {/* ── Botón flotante del Chatbot (Esquina inferior derecha) ───────────── */}
+      {!isChatOpen && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          title="Abrir Asistente Virtual"
+          style={{
+            position: 'fixed',
+            bottom: '25px',
+            right: '25px',
+            width: '70px',
+            height: '70px',
+            borderRadius: '50%',
+            backgroundColor: '#9F2241',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.4)',
+            border: '3px solid white',
+            cursor: 'pointer',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            padding: 0,
+            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.4)';
+          }}
+        >
+          <img 
+            src="/assets/robotsito.jpeg" 
+            alt="Asistente Virtual" 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover',
+              display: 'block'
+            }} 
+            onError={(e) => {
+              // Fallback si la imagen no carga
+              e.target.style.display = 'none';
+              e.currentTarget.parentElement.innerHTML = '<span style="font-size: 30px">🤖</span>';
+            }}
+          />
+        </button>
+      )}
 
     </div>
   );
