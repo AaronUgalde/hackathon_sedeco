@@ -69,6 +69,7 @@ export default function App() {
   // ── DENUE — lazy, solo cuando hay filtro espacial ─────────────────────────
   const { denueData, denueStats, colorMap: denueColorMap, loading: denueLoading } = useDenue(filters.spatialFilterPolygons);
   const [denueVisible, setDenueVisible] = useState(true);
+  const [denuePopup, setDenuePopup]     = useState(null);
 
   // ── Filtrado espacial en el cliente (para el mapa) ─────────────────────────
   const poisData = React.useMemo(() => {
@@ -362,7 +363,22 @@ export default function App() {
 
     const features = e.features || [];
 
-    // 2. Lógica para POIs (Puntos y Polígonos)
+    // 2. Puntos DENUE
+    const denueFeature = features.find(f => f.layer.id === 'layer-denue-points');
+    if (denueFeature) {
+      const nombreAct = denueFeature.properties.nombre_act;
+      setDenuePopup({
+        longitude:  e.lngLat.lng,
+        latitude:   e.lngLat.lat,
+        color:      denueColorMap[nombreAct] || '#9F2241',
+        properties: denueFeature.properties,
+      });
+      setPolyPopup(null);
+      return;
+    }
+    setDenuePopup(null);
+
+    // 3. Lógica para POIs (Puntos y Polígonos)
     const poiFeature = features.find(f =>
       f.layer.id.startsWith('layer-poi-') &&
       (f.layer.id.endsWith('-fill') || f.layer.id.endsWith('-point'))
@@ -396,7 +412,7 @@ export default function App() {
     }
 
     setPolyPopup(null);
-  }, [activeTool, measureMode, drawInstance, poisData]);
+  }, [activeTool, measureMode, drawInstance, poisData, denueColorMap]);
 
   // ── Toggle de paneles ─────────────────────────────────────────────────────
   const togglePanel = (id) => {
@@ -410,6 +426,8 @@ export default function App() {
         drawnPolygon: allDrawings,
         mapStyle,
         viewState,
+        denueData:     denueVisible ? denueData : null,
+        denueColorMap: denueColorMap,
       });
       return;
     }
@@ -450,6 +468,8 @@ export default function App() {
           denueData={denueData}
           denueColorMap={denueColorMap}
           denueVisible={denueVisible}
+          denuePopup={denuePopup}
+          onCloseDenuePopup={() => setDenuePopup(null)}
           customMarker={customMarker}
           circlePreview={circlePreview}
           circleCenterMarker={circleCenterMarker}
@@ -634,7 +654,7 @@ export default function App() {
         isOpen={activePanels.includes('denue')}
         onClose={() => togglePanel('denue')}
         initialPosition={{ x: 70, y: 100 }}
-        width={320}
+        width={480}
       >
         <DenuePanel
           denueStats={denueStats}

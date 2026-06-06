@@ -434,7 +434,9 @@ def _get_denue_gdf():
         gdf = gpd.read_file(DENUE_PATH, layer=0)
         if not gdf.crs or gdf.crs.to_epsg() != 4326:
             gdf = gdf.to_crs(epsg=4326)
-        _denue_gdf = gdf[['nombre_act', 'nom_estab', 'geometry']].copy()
+        cols_wanted = ['nombre_act', 'nom_estab', 'codigo_act', 'per_ocu', 'tipoUniEco', 'sector', 'geometry']
+        cols_existing = [c for c in cols_wanted if c in gdf.columns]
+        _denue_gdf = gdf[cols_existing].copy()
         print(f"✓ DENUE cargado: {len(_denue_gdf)} registros")
     return _denue_gdf
 

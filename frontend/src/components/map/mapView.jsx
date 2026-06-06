@@ -109,6 +109,15 @@ const DRAW_STYLES = [
   },
 ];
 const tam = 64;
+const DENUE_FIELD_LABELS = {
+  nom_estab:  'Establecimiento',
+  codigo_act: 'Código de actividad',
+  nombre_act: 'Actividad',
+  per_ocu:    'Personal ocupado',
+  tipoUniEco: 'Tipo de unidad económica',
+  sector:     'Sector',
+};
+
 export default function MapView({
   viewState,
   onMove,
@@ -122,6 +131,8 @@ export default function MapView({
   denueData,
   denueColorMap,
   denueVisible,
+  denuePopup,
+  onCloseDenuePopup,
   customMarker,
   circlePreview,
   circleCenterMarker,
@@ -298,6 +309,8 @@ export default function MapView({
     .filter(([, geojson]) => geojson?.features?.length > 0)
     .map(([type]) => `layer-poi-${type}-fill`);
 
+  const denueFeaturesExist = denueVisible && denueData?.features?.length > 0;
+
   return (
     <Map
       {...viewState}
@@ -312,7 +325,8 @@ export default function MapView({
       interactiveLayerIds={[
         ...activePolygonFillLayerIds,
         ...activePoisFillLayerIds,
-        ...Object.keys(poisData || {}).map(type => `layer-poi-${type}-point`)
+        ...Object.keys(poisData || {}).map(type => `layer-poi-${type}-point`),
+        ...(denueFeaturesExist ? ['layer-denue-points'] : []),
       ]}
     >
       <NavigationControl position="top-right" />
@@ -379,6 +393,47 @@ export default function MapView({
                 </tbody>
               </table>
             </div>
+          </div>
+        </Popup>
+      )}
+
+      {/* Popup DENUE */}
+      {denuePopup && (
+        <Popup
+          longitude={denuePopup.longitude}
+          latitude={denuePopup.latitude}
+          onClose={onCloseDenuePopup}
+          closeButton
+          closeOnClick={false}
+          anchor="bottom"
+        >
+          <div style={{ width: 250, maxHeight: 340, overflowY: 'auto', fontFamily: 'system-ui, sans-serif' }}>
+            <div style={{
+              backgroundColor: denuePopup.color || '#9F2241',
+              color: '#fff', padding: '8px 12px',
+              margin: '-7px -7px 8px', borderRadius: '4px 4px 0 0',
+            }}>
+              <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', opacity: 0.85, marginBottom: 2 }}>
+                DENUE — Unidad Económica
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}>
+                {denuePopup.properties.nombre_act || '—'}
+              </div>
+            </div>
+            {Object.entries(DENUE_FIELD_LABELS).map(([field, label]) => {
+              const val = denuePopup.properties[field];
+              if (val === null || val === undefined || String(val).trim() === '') return null;
+              return (
+                <div key={field} style={{ padding: '5px 4px', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {label}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#1e293b', marginTop: 1 }}>
+                    {String(val)}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Popup>
       )}
