@@ -21,6 +21,18 @@ import re
 from urllib.parse import urljoin
 import io
 
+# ─── Chatbot RAG ──────────────────────────────────────────────────────────────
+# Cargar variables de entorno desde .env (si existe)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv no instalado; usar variables de entorno del sistema
+
+from chatbot.router import router as chatbot_router
+from chatbot.rag_engine import initialize_rag
+# ─────────────────────────────────────────────────────────────────────────────
+
 class FileUpload(BaseModel):
     filename: str
     content: str  # Aquí recibiremos el archivo como texto Base64
@@ -30,6 +42,10 @@ class UrlAnalizer(BaseModel):
 
 
 app = FastAPI(title="API Consulta Cartográfica CDMX")
+
+# ─── Registrar router del chatbot ─────────────────────────────────────────────
+app.include_router(chatbot_router)
+# ─────────────────────────────────────────────────────────────────────────────
 
 def normalizar_texto(texto: str) -> str:
     """Elimina acentos y convierte a mayúsculas"""
@@ -112,8 +128,12 @@ def cargar_datos():
         else:
             print(f"⚠ No se encontró el archivo: {gpkg_path}")
 
-# Cargar datos al importar el módulo
+# Cargar datos cartográficos al importar el módulo
 cargar_datos()
+
+# Pre-cargar el índice RAG del chatbot al iniciar el servidor
+# (así la primera consulta del usuario no experimenta latencia de indexación)
+initialize_rag()
 
 
 # =============================================================================

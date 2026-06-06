@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Icons from '../../utils/icons';
 import styles from '../../styles';
 
-export default function Toolbar({ activePanels, togglePanel }) {
+export default function Toolbar({ activePanels, togglePanel, isChatOpen }) {
   const [hoveredBtn, setHoveredBtn] = useState(null);
 
   const buttons = [
@@ -13,6 +13,7 @@ export default function Toolbar({ activePanels, togglePanel }) {
     { id: 'territorios_paz', icon: Icons.peace,    tooltip: 'Territorios de Paz' },
     { id: 'measure',         icon: Icons.draw,     tooltip: 'Herramientas de Dibujo' },
     { id: 'upload',          icon: Icons.upload,   tooltip: 'Cargar Archivos (GPKG/Excel/URL)' },
+    { id: 'chat',            icon: Icons.chat,     tooltip: 'Asesor de Negocios (IA)' },
   ];
   // Botón que siempre queda en la esquina inferior
   const bottomButton = { id: 'descargar_mapa', icon: Icons.download, tooltip: 'Descargar Mapa' };
@@ -32,6 +33,7 @@ export default function Toolbar({ activePanels, togglePanel }) {
           ...styles.toolbarBtn,
           ...(
             activePanels.includes(btn.id) ||
+            (btn.id === 'chat'   && isChatOpen) ||
             (btn.id === 'filter'  && activePanels.some(p => p.startsWith('filter_'))) ||
             (btn.id === 'measure' && activePanels.some(p => p.startsWith('measure')))
               ? styles.toolbarBtnActive
