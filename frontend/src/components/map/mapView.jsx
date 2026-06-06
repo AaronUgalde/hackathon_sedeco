@@ -7,6 +7,7 @@ import DrawControl    from './drawControl';
 import PolygonLayers  from './layers/PolygonLayers';
 import CustomMarkerLayer from './layers/CustomMarkerLayer';
 import PoisLayer from './layers/POISLayers';
+import DenueLayer from './layers/DenueLayer';
 
 import { MAP_STYLES, LAYER_COLORS } from '../../constants';
 import styles from '../../styles';
@@ -118,6 +119,9 @@ export default function MapView({
   userLayers,
   polygonsData,
   poisData,
+  denueData,
+  denueColorMap,
+  denueVisible,
   customMarker,
   circlePreview,
   circleCenterMarker,
@@ -332,6 +336,7 @@ export default function MapView({
 
       <PolygonLayers   polygonsData={polygonsData} />
       <PoisLayer       poisData={poisData} />
+      <DenueLayer      denueData={denueData} colorMap={denueColorMap} visible={denueVisible} />
       <CustomMarkerLayer marker={customMarker} />
 
       {circlePreview && (

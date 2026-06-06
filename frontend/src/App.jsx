@@ -9,6 +9,7 @@ import { point } from '@turf/helpers';
 import { useFilters }  from './hooks/useFilter';
 import { usePolygons } from './hooks/usePolygons';
 import { usePois }     from './hooks/usePOIS';
+import { useDenue }    from './hooks/useDenue';
 
 // Layout
 import Header        from './components/layout/Header';
@@ -31,6 +32,7 @@ import MeasurementPanel   from './components/panels/MeasurementPanel';
 import DistancePanel   from './components/panels/DistancePanel';
 import FilterPolygonPanel   from './components/panels/FilterPolygonPanel';
 import PoisPanel          from './components/panels/PoisPanel';
+import DenuePanel         from './components/panels/DenuePanel';
 import UploadPanel        from './components/panels/UploadPanel';
 
 // Constantes y estilos
@@ -63,6 +65,10 @@ export default function App() {
   // ── Polígonos y POIs ───────────────────────────────────────────────────────
   const polygonsData = usePolygons(filters);
   const { data: rawPoisData, menuOptions: poisMenuOptions, especialidades } = usePois(filters);
+
+  // ── DENUE — lazy, solo cuando hay filtro espacial ─────────────────────────
+  const { denueData, denueStats, colorMap: denueColorMap, loading: denueLoading } = useDenue(filters.spatialFilterPolygons);
+  const [denueVisible, setDenueVisible] = useState(true);
 
   // ── Filtrado espacial en el cliente (para el mapa) ─────────────────────────
   const poisData = React.useMemo(() => {
@@ -441,6 +447,9 @@ export default function App() {
           cursor={cursor}
           polygonsData={polygonsData}
           poisData={poisData}
+          denueData={denueData}
+          denueColorMap={denueColorMap}
+          denueVisible={denueVisible}
           customMarker={customMarker}
           circlePreview={circlePreview}
           circleCenterMarker={circleCenterMarker}
@@ -615,6 +624,24 @@ export default function App() {
           filteredPoisCount={filteredPoisCount}
           onSetTool={handleSetTool}
           activeTool={activeTool}
+        />
+      </FloatingPanel>
+
+      <FloatingPanel
+        id="denue"
+        title="Unidades Económicas DENUE"
+        icon={Icons.denue}
+        isOpen={activePanels.includes('denue')}
+        onClose={() => togglePanel('denue')}
+        initialPosition={{ x: 70, y: 100 }}
+        width={320}
+      >
+        <DenuePanel
+          denueStats={denueStats}
+          colorMap={denueColorMap}
+          visible={denueVisible}
+          onToggleVisible={() => setDenueVisible(v => !v)}
+          loading={denueLoading}
         />
       </FloatingPanel>
 
